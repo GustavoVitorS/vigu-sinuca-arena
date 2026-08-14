@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#08151a" />
+  <meta name="description" content="VIGU Sinuca Arena — jogo de sinuca responsivo em HTML, CSS e JavaScript puro." />
+  <title>VIGU Sinuca Arena</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">V</div>
+        <div>
+          <strong>VIGU SINUCA ARENA</strong>
+          <span>Desafio da Bola 8</span>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="icon-btn" id="soundBtn" type="button" aria-label="Ativar ou desativar sons"
+          title="Som ligado">🔊</button>
+        <button class="icon-btn" id="helpBtn" type="button" aria-label="Como jogar" title="Como jogar">?</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="menuScreen" class="screen active">
+        <div class="hero-card glass">
+          <p class="eyebrow">SINUCA PARA JOGAR A QUALQUER HORA</p>
+          <h1>Escolha a dificuldade</h1>
+          <p class="subtitle">
+            Vença uma partida em <b>Fácil</b>, <b>Médio</b> e <b>Difícil</b> para desbloquear o modo
+            <b>HARDCORE</b>.
+          </p>
+
+          <div id="difficultyGrid" class="difficulty-grid">
+            <button class="difficulty-card" data-level="easy" type="button">
+              <span class="difficulty-icon">🎯</span>
+              <span class="difficulty-name">Fácil</span>
+              <small>CPU erra bastante e joga com calma.</small>
+              <span class="status-pill" data-status="easy">Disponível</span>
+            </button>
+
+            <button class="difficulty-card" data-level="medium" type="button">
+              <span class="difficulty-icon">⚡</span>
+              <span class="difficulty-name">Médio</span>
+              <small>CPU calcula melhor ângulos e força.</small>
+              <span class="status-pill" data-status="medium">Disponível</span>
+            </button>
+
+            <button class="difficulty-card" data-level="hard" type="button">
+              <span class="difficulty-icon">🔥</span>
+              <span class="difficulty-name">Difícil</span>
+              <small>CPU é agressiva e quase não desperdiça chances.</small>
+              <span class="status-pill" data-status="hard">Disponível</span>
+            </button>
+
+            <button class="difficulty-card hardcore" data-level="hardcore" type="button">
+              <span class="difficulty-icon">💀</span>
+              <span class="difficulty-name">HARDCORE</span>
+              <small>Precisão brutal, força otimizada e poucas chances de reação.</small>
+              <span class="status-pill locked" data-status="hardcore">🔒 Bloqueado</span>
+            </button>
+          </div>
+
+          <div class="progress-card">
+            <div class="progress-copy">
+              <span>Progresso do desafio</span>
+              <strong id="progressText">0/3 vitórias</strong>
+            </div>
+            <div class="progress-track">
+              <div id="progressBar" class="progress-fill"></div>
+            </div>
+            <button id="resetProgressBtn" class="text-btn" type="button">Resetar progresso</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="screen">
+        <div class="game-layout">
+          <div class="hud glass">
+            <div class="player-card active-turn" id="playerCard">
+              <div class="avatar">VOCÊ</div>
+              <div class="player-info">
+                <span id="playerGroup">Mesa aberta</span>
+                <strong id="playerBalls">—</strong>
+              </div>
+            </div>
+
+            <div class="center-hud">
+              <span id="difficultyBadge">FÁCIL</span>
+              <strong id="turnLabel">Sua vez</strong>
+              <small id="messageLabel">Mire, ajuste a força e solte.</small>
+            </div>
+
+            <div class="player-card" id="cpuCard">
+              <div class="player-info right">
+                <span id="cpuGroup">Mesa aberta</span>
+                <strong id="cpuBalls">—</strong>
+              </div>
+              <div class="avatar cpu">CPU</div>
+            </div>
+          </div>
+
+          <div class="table-stage">
+            <div class="table-wrap">
+              <canvas id="gameCanvas" aria-label="Mesa de sinuca"></canvas>
+              <div id="cpuThinking" class="thinking hidden">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                CPU pensando
+              </div>
+            </div>
+
+            <aside class="controls glass">
+              <div class="control-head">
+                <div>
+                  <span class="control-label">FORÇA DA TACADA</span>
+                  <strong id="powerValue">0%</strong>
+                </div>
+                <span id="dragState" class="drag-state">PRONTO</span>
+              </div>
+
+              <div class="power-meter" aria-label="Força da tacada">
+                <div id="powerFill" class="power-fill"></div>
+              </div>
+
+              <div class="gesture-card">
+                <span class="gesture-icon">↙</span>
+                <div>
+                  <strong>Segure, puxe e solte</strong>
+                  <small>A força aumenta conforme você arrasta o taco para trás.</small>
+                </div>
+              </div>
+
+              <div class="control-hints">
+                <span>🖱️ Desktop: mova para mirar, segure o clique, puxe para trás e solte.</span>
+                <span>📱 Mobile: toque na direção da mira, segure, puxe para trás e solte.</span>
+                <span>🎯 Linha pontilhada = trajetória inicial.</span>
+              </div>
+
+              <div class="mini-actions">
+                <button id="newGameBtn" type="button">↻ Reiniciar</button>
+                <button id="menuBtn" type="button">☰ Menu</button>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden">
+    <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div id="modalIcon" class="modal-icon">🏆</div>
+      <h2 id="modalTitle">Vitória!</h2>
+      <p id="modalText"></p>
+      <div id="modalActions" class="modal-actions"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
