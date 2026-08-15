@@ -1186,3 +1186,255 @@ h1 {
     padding: 4px 3px;
   }
 }
+
+/* =========================================================
+   V8 — correções para celulares compactos em landscape
+   ========================================================= */
+
+/*
+  O breakpoint global de 640px colocava o HUD em duas linhas.
+  Em aparelhos compactos em paisagem isso consumia altura demais e podia
+  cortar a mesa/controles. Durante a gameplay horizontal, o HUD volta
+  explicitamente para UMA linha.
+*/
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  body.game-active,
+  body.game-active main,
+  body.game-active #gameScreen,
+  body.game-active .game-layout,
+  body.game-active .table-stage,
+  body.game-active .table-wrap,
+  body.game-active .controls {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  body.game-active .hud {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-rows: auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  body.game-active .center-hud {
+    grid-column: auto;
+    grid-row: auto;
+    order: initial;
+    min-width: 100px;
+    padding: 0 3px;
+  }
+
+  body.game-active .player-card {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  body.game-active .player-info {
+    min-width: 0;
+  }
+
+  body.game-active .player-info span,
+  body.game-active .player-info strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body.game-active .table-stage {
+    width: 100%;
+  }
+
+  body.game-active .table-wrap {
+    width: 100%;
+  }
+
+  body.game-active #gameCanvas {
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
+/* Celulares pequenos, por exemplo 568×320, 640×360 e tamanhos próximos. */
+@media (pointer: coarse) and (orientation: landscape) and (max-width: 700px) and (max-height: 430px) {
+  body.game-active #gameScreen {
+    padding:
+      max(2px, env(safe-area-inset-top))
+      max(3px, env(safe-area-inset-right))
+      max(2px, env(safe-area-inset-bottom))
+      max(3px, env(safe-area-inset-left));
+  }
+
+  body.game-active .game-layout {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  body.game-active .hud {
+    margin-bottom: 2px;
+    padding: 2px 4px;
+    gap: 3px;
+    border-radius: 9px;
+  }
+
+  body.game-active .player-card {
+    padding: 1px 3px;
+    gap: 4px;
+    border-radius: 7px;
+  }
+
+  body.game-active .avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    font-size: .40rem;
+    flex: 0 0 24px;
+  }
+
+  body.game-active .player-info span {
+    font-size: .49rem;
+  }
+
+  body.game-active .player-info strong {
+    font-size: .60rem;
+  }
+
+  body.game-active .center-hud {
+    min-width: 84px;
+  }
+
+  body.game-active .center-hud > span {
+    display: none;
+  }
+
+  body.game-active .center-hud strong {
+    font-size: .68rem;
+    line-height: 1.05;
+  }
+
+  body.game-active .center-hud small {
+    display: none;
+  }
+
+  body.game-active .table-stage {
+    grid-template-columns: minmax(0, 1fr) clamp(78px, 14.5vw, 92px);
+    gap: 3px;
+  }
+
+  body.game-active .table-wrap {
+    border-radius: 10px;
+  }
+
+  body.game-active .controls {
+    padding: 4px;
+    gap: 4px;
+    border-radius: 10px;
+  }
+
+  body.game-active .control-head {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+    text-align: center;
+  }
+
+  body.game-active .control-label {
+    display: none;
+  }
+
+  body.game-active #powerValue {
+    font-size: .78rem;
+    line-height: 1;
+  }
+
+  body.game-active .drag-state {
+    min-width: 0;
+    min-height: 20px;
+    width: 100%;
+    padding: 3px 2px;
+    font-size: .43rem;
+    letter-spacing: .04em;
+  }
+
+  body.game-active .power-meter {
+    width: 8px;
+    height: min(27dvh, 72px);
+    min-height: 38px;
+  }
+
+  body.game-active .mini-actions {
+    gap: 3px;
+  }
+
+  body.game-active .mini-actions button {
+    min-height: 22px;
+    padding: 3px 2px;
+    border-radius: 6px;
+    font-size: .49rem;
+    line-height: 1;
+  }
+
+  body.game-active .thinking {
+    top: 4px;
+    padding: 4px 6px;
+    font-size: .52rem;
+  }
+}
+
+/* Aparelhos extremamente compactos/baixos. */
+@media (pointer: coarse) and (orientation: landscape) and (max-width: 600px) and (max-height: 350px) {
+  body.game-active .hud {
+    padding: 1px 3px;
+  }
+
+  body.game-active .avatar {
+    width: 21px;
+    height: 21px;
+    flex-basis: 21px;
+    font-size: .34rem;
+  }
+
+  body.game-active .player-info span {
+    display: none;
+  }
+
+  body.game-active .player-info strong {
+    font-size: .54rem;
+  }
+
+  body.game-active .center-hud {
+    min-width: 68px;
+  }
+
+  body.game-active .center-hud strong {
+    font-size: .60rem;
+  }
+
+  body.game-active .table-stage {
+    grid-template-columns: minmax(0, 1fr) 72px;
+    gap: 2px;
+  }
+
+  body.game-active .controls {
+    padding: 3px;
+    gap: 3px;
+  }
+
+  body.game-active #powerValue {
+    font-size: .68rem;
+  }
+
+  body.game-active .drag-state {
+    min-height: 18px;
+    font-size: .39rem;
+  }
+
+  body.game-active .power-meter {
+    width: 7px;
+    height: min(24dvh, 58px);
+    min-height: 30px;
+  }
+
+  body.game-active .mini-actions button {
+    min-height: 19px;
+    font-size: .43rem;
+  }
+}

@@ -41,7 +41,7 @@
   const modalText = document.getElementById("modalText");
   const modalActions = document.getElementById("modalActions");
 
-  const GAME_VERSION = "7.0-touch-lock";
+  const GAME_VERSION = "8.0-turns-small-mobile";
   const STORAGE_KEY = "vigu-sinuca-arena-progress-v1";
   const LEGACY_STORAGE_KEY = "vigu-cue-clash-progress-v1";
 
@@ -1181,11 +1181,38 @@
   function settleAfterShot() {
     const shooter = turn;
     const opponent = shooter === "player" ? "cpu" : "player";
-    const shooterGroup = groups[shooter];
 
-    // Assign groups on the first non-8 legal pocket.
-    if (!groups.player && !groups.cpu && !scratchThisShot) {
-      const firstGroupBall = pocketedThisShot.find(n => n !== 8);
+    /*
+      REGRA V8 — a situação da mesa precisa ser avaliada como ela estava
+      NO INÍCIO da tacada.
+
+      Na versão anterior, o grupo (lisas/listradas) podia ser atribuído após
+      uma bola cair e, logo em seguida, a mesma tacada era reavaliada usando
+      esse grupo recém-criado. Isso podia transformar uma tacada válida em
+      falta e passar a vez para a CPU mesmo depois de encaçapar.
+    */
+    const groupAtShotStart = groups[shooter];
+
+    // Quantas bolas do grupo do jogador existiam antes desta tacada?
+    // remaining() já vê a mesa depois das bolas terem caído, então somamos
+    // de volta as bolas do próprio grupo encaçapadas nesta jogada.
+    const ownBallsPocketedThisShot = groupAtShotStart
+      ? pocketedThisShot.filter(n => groupOfBall(n) === groupAtShotStart).length
+      : 0;
+
+    const remainingAtShotStart = groupAtShotStart
+      ? remaining(groupAtShotStart) + ownBallsPocketedThisShot
+      : null;
+
+    const tableWasOpen = !groups.player && !groups.cpu;
+
+    // Em mesa aberta, a primeira bola válida encaçapada define os grupos.
+    if (tableWasOpen && !scratchThisShot) {
+      const firstGroupBall = pocketedThisShot.find(n => {
+        const g = groupOfBall(n);
+        return g === "solids" || g === "stripes";
+      });
+
       if (firstGroupBall) {
         const g = groupOfBall(firstGroupBall);
         groups[shooter] = g;
@@ -1195,35 +1222,86 @@
 
     const eightPocketed = pocketedThisShot.includes(8);
     if (eightPocketed) {
-      const legalEight = canShootEight(shooter) && !scratchThisShot;
-      endGame(legalEight ? shooter : opponent, legalEight ? "A bola 8 caiu legalmente." : "A bola 8 caiu antes da hora.");
+      /*
+        A bola 8 só é legal se o jogador JÁ tinha limpado seu grupo antes
+        desta tacada. Encaçapar a última bola do grupo e a 8 na mesma tacada
+        não transforma a 8 em uma finalização legal.
+      */
+      const wasAlreadyOnEight = !!groupAtShotStart && remainingAtShotStart === 0;
+      const legalEight = wasAlreadyOnEight && !scratchThisShot;
+
+      endGame(
+        legalEight ? shooter : opponent,
+        legalEight ? "A bola 8 caiu legalmente." : "A bola 8 caiu antes da hora."
+      );
       return;
     }
 
-    // Basic foul logic.
+    // Regras de primeira colisão avaliadas com o estado anterior à tacada.
     let foul = scratchThisShot || firstHit === null;
-    if (!foul && groups[shooter]) {
-      const legalGroup = canShootEight(shooter) ? "eight" : groups[shooter];
-      foul = groupOfBall(firstHit) !== legalGroup;
+
+    if (!foul) {
+      const firstHitGroup = groupOfBall(firstHit);
+
+      if (!groupAtShotStart) {
+        // Mesa aberta: pode começar por lisa ou listrada, mas não pela bola 8.
+        foul = firstHitGroup === "eight" || firstHitGroup === "cue";
+      } else if (remainingAtShotStart === 0) {
+        // O grupo já estava limpo: agora a primeira bola deve ser a 8.
+        foul = firstHitGroup !== "eight";
+      } else {
+        // Durante a limpeza, a primeira bola deve pertencer ao próprio grupo.
+        foul = firstHitGroup !== groupAtShotStart;
+      }
     }
 
-    const ownPocketed = pocketedThisShot.some(n => {
-      if (n === 8) return false;
-      if (!groups[shooter]) return true;
-      return groupOfBall(n) === groups[shooter];
-    });
+    /*
+      O jogador mantém a vez sempre que:
+      - não houve falta; e
+      - uma bola válida do seu objetivo atual foi encaçapada.
+
+      Portanto é possível limpar a mesa inteira em sequência sem a CPU jogar,
+      desde que todas as tacadas sejam válidas e encaçapem pelo menos uma bola.
+    */
+    let scoredLegalBall = false;
+
+    if (!foul) {
+      if (!groupAtShotStart) {
+        scoredLegalBall = pocketedThisShot.some(n => {
+          const g = groupOfBall(n);
+          return g === "solids" || g === "stripes";
+        });
+      } else if (remainingAtShotStart > 0) {
+        scoredLegalBall = pocketedThisShot.some(
+          n => groupOfBall(n) === groupAtShotStart
+        );
+      }
+    }
 
     if (scratchThisShot) respotCueBall();
 
     if (foul) {
       turn = opponent;
-      updateHUD(shooter === "player" ? "Falta. A vez passa para a CPU." : "A CPU cometeu falta. Sua vez.");
-    } else if (ownPocketed) {
-      // Shooter continues.
-      updateHUD(shooter === "player" ? "Boa! Você continua na mesa." : "A CPU encaçapou e continua.");
+      updateHUD(
+        shooter === "player"
+          ? "Falta. A vez passa para a CPU."
+          : "A CPU cometeu falta. Sua vez."
+      );
+    } else if (scoredLegalBall) {
+      // NÃO muda turn: quem encaçapou legalmente continua jogando.
+      updateHUD(
+        shooter === "player"
+          ? "Encaçapou! Você continua jogando."
+          : "A CPU encaçapou e continua na mesa."
+      );
     } else {
+      // Só passa a vez quando não houve bola válida encaçapada.
       turn = opponent;
-      updateHUD(shooter === "player" ? "Nenhuma bola válida caiu. Vez da CPU." : "A CPU não pontuou. Sua vez.");
+      updateHUD(
+        shooter === "player"
+          ? "Não encaçapou uma bola válida. Vez da CPU."
+          : "A CPU não encaçapou. Sua vez."
+      );
     }
 
     if (turn === "cpu" && !gameOver) {

@@ -108,3 +108,21 @@ A gameplay em celular foi otimizada para paisagem:
 - Movimento lateral involuntário do dedo é ignorado para a direção da tacada.
 - Tocar em outra região da mesa continua permitindo escolher uma nova direção.
 - Mouse/desktop mantém o comportamento anterior.
+
+
+## V8 — turnos corretos e celulares compactos
+
+### Turnos
+- Se o jogador encaçapar uma bola válida sem cometer falta, ele continua jogando.
+- A CPU só recebe a vez quando o jogador não encaçapa uma bola válida ou comete uma falta.
+- A mesma regra vale para a CPU.
+- É possível encaçapar todas as bolas em sequência sem o adversário jogar, desde que não haja erro.
+- A validação da primeira colisão agora usa o estado da mesa no início da tacada, evitando faltas falsas logo após a definição de lisas/listradas.
+- Encaçapar a última bola do grupo e a bola 8 na mesma tacada não conta como finalização válida; o jogador precisa já estar na bola 8 antes da tacada.
+
+### Mobile compacto
+- HUD forçado para uma única linha durante gameplay horizontal.
+- Correção do conflito com o breakpoint de 640px que aumentava a altura do HUD.
+- Layout específico para telas próximas de 568×320 e 640×360.
+- Controles laterais mais estreitos e compactos.
+- Melhor respeito às safe areas e ao viewport disponível.
