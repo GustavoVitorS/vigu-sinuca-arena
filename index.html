@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#08151a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <meta name="description" content="VIGU Sinuca Arena — jogo de sinuca responsivo em HTML, CSS e JavaScript puro." />
   <title>VIGU Sinuca Arena</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
   <div class="app-shell">
     <header class="topbar">
@@ -22,8 +24,7 @@
       </div>
 
       <div class="top-actions">
-        <button class="icon-btn" id="soundBtn" type="button" aria-label="Ativar ou desativar sons"
-          title="Som ligado">🔊</button>
+        <button class="icon-btn" id="soundBtn" type="button" aria-label="Ativar ou desativar sons" title="Som ligado">🔊</button>
         <button class="icon-btn" id="helpBtn" type="button" aria-label="Como jogar" title="Como jogar">?</button>
       </div>
     </header>
@@ -31,7 +32,7 @@
     <main>
       <section id="menuScreen" class="screen active">
         <div class="hero-card glass">
-          <p class="eyebrow">SINUCA PARA JOGAR A QUALQUER HORA</p>
+          <p class="eyebrow">SINuca PARA JOGAR A QUALQUER HORA</p>
           <h1>Escolha a dificuldade</h1>
           <p class="subtitle">
             Vença uma partida em <b>Fácil</b>, <b>Médio</b> e <b>Difícil</b> para desbloquear o modo
@@ -154,6 +155,23 @@
     </main>
   </div>
 
+
+  <div id="orientationGate" class="orientation-gate hidden" role="dialog" aria-modal="true" aria-labelledby="orientationTitle">
+    <div class="orientation-card glass">
+      <div class="rotate-phone" aria-hidden="true">
+        <span class="phone-shape">▯</span>
+        <span class="rotate-arrow">↻</span>
+      </div>
+      <p class="orientation-kicker">MODO MOBILE</p>
+      <h2 id="orientationTitle">Jogue na horizontal</h2>
+      <p id="orientationText">
+        A mesa foi otimizada para ocupar a tela inteira no modo paisagem.
+      </p>
+      <button id="landscapeBtn" class="landscape-btn" type="button">Ativar tela horizontal</button>
+      <small id="orientationHint">Se o navegador não girar automaticamente, vire o celular para o lado.</small>
+    </div>
+  </div>
+
   <div id="modalBackdrop" class="modal-backdrop hidden">
     <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div id="modalIcon" class="modal-icon">🏆</div>
@@ -165,5 +183,4 @@
 
   <script src="script.js"></script>
 </body>
-
 </html>

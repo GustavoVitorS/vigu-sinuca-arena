@@ -30,6 +30,11 @@
   const cpuBalls = document.getElementById("cpuBalls");
   const cpuThinking = document.getElementById("cpuThinking");
 
+  const orientationGate = document.getElementById("orientationGate");
+  const landscapeBtn = document.getElementById("landscapeBtn");
+  const orientationText = document.getElementById("orientationText");
+  const orientationHint = document.getElementById("orientationHint");
+
   const modalBackdrop = document.getElementById("modalBackdrop");
   const modalIcon = document.getElementById("modalIcon");
   const modalTitle = document.getElementById("modalTitle");
@@ -201,6 +206,77 @@
     }
   }
 
+  function isTouchMobileLayout() {
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    const hasTouch = (navigator.maxTouchPoints || 0) > 0;
+    const shortestScreenSide = Math.min(
+      window.screen?.width || window.innerWidth,
+      window.screen?.height || window.innerHeight
+    );
+    return (coarsePointer || hasTouch) && shortestScreenSide <= 1024;
+  }
+
+  function isPortraitViewport() {
+    return window.innerHeight > window.innerWidth;
+  }
+
+  function updateOrientationGate() {
+    const gameIsOpen = gameScreen.classList.contains("active");
+    const needsLandscape = gameIsOpen && isTouchMobileLayout() && isPortraitViewport();
+
+    orientationGate.classList.toggle("hidden", !needsLandscape);
+
+    if (!needsLandscape) {
+      orientationText.textContent = "A mesa foi otimizada para ocupar a tela inteira no modo paisagem.";
+      orientationHint.textContent = "Se o navegador não girar automaticamente, vire o celular para o lado.";
+      // Espera o viewport estabilizar depois da rotação/fullscreen.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (gameIsOpen) resizeCanvas();
+        });
+      });
+    }
+  }
+
+  async function requestLandscapeExperience() {
+    if (!isTouchMobileLayout()) return false;
+
+    let fullscreenEntered = !!document.fullscreenElement;
+    let orientationLocked = false;
+
+    // Navegadores modernos normalmente exigem um gesto do usuário para fullscreen.
+    if (!fullscreenEntered && document.documentElement.requestFullscreen) {
+      try {
+        await document.documentElement.requestFullscreen({ navigationUI: "hide" });
+        fullscreenEntered = true;
+      } catch {
+        // Fallback abaixo: o jogador ainda pode girar o aparelho manualmente.
+      }
+    }
+
+    // Em navegadores que suportam Screen Orientation API, o lock costuma
+    // funcionar depois que a página entrou em fullscreen.
+    if (screen.orientation && typeof screen.orientation.lock === "function") {
+      try {
+        await screen.orientation.lock("landscape");
+        orientationLocked = true;
+      } catch {
+        // iOS/Safari e alguns navegadores não permitem lock de orientação.
+      }
+    }
+
+    updateOrientationGate();
+
+    if (isPortraitViewport()) {
+      orientationText.textContent = orientationLocked
+        ? "A orientação foi solicitada. Aguarde um instante."
+        : "Seu navegador não permite girar a tela automaticamente nesta página.";
+      orientationHint.textContent = "Vire o celular para o lado; assim que entrar em paisagem, o jogo libera sozinho.";
+    }
+
+    return fullscreenEntered || orientationLocked;
+  }
+
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -223,7 +299,24 @@
     }
   }
 
-  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("resize", () => {
+    resizeCanvas();
+    updateOrientationGate();
+  });
+  window.addEventListener("orientationchange", () => {
+    setTimeout(updateOrientationGate, 80);
+    setTimeout(resizeCanvas, 140);
+  });
+  document.addEventListener("fullscreenchange", () => {
+    setTimeout(updateOrientationGate, 60);
+    setTimeout(resizeCanvas, 100);
+  });
+  if (screen.orientation && typeof screen.orientation.addEventListener === "function") {
+    screen.orientation.addEventListener("change", () => {
+      setTimeout(updateOrientationGate, 60);
+      setTimeout(resizeCanvas, 100);
+    });
+  }
 
   function normToPx(ball) {
     return {
@@ -318,6 +411,8 @@
 
     menuScreen.classList.remove("active");
     gameScreen.classList.add("active");
+    document.body.classList.add("game-active");
+    updateOrientationGate();
     resizeCanvas();
     updateHUD();
     draw();
@@ -328,6 +423,8 @@
     cpuThinking.classList.add("hidden");
     gameScreen.classList.remove("active");
     menuScreen.classList.add("active");
+    document.body.classList.remove("game-active");
+    orientationGate.classList.add("hidden");
     updateProgressUI();
   }
 
@@ -1471,8 +1568,27 @@
   difficultyGrid.addEventListener("click", e => {
     const btn = e.target.closest("[data-level]");
     if (!btn) return;
+
+    const level = btn.dataset.level;
+    if (level === "hardcore" && !progress.hardcoreUnlocked) {
+      startGame(level);
+      return;
+    }
+
     unlockAudio().then(ok => { if (ok) playSound("ui", 0.85); });
-    startGame(btn.dataset.level);
+
+    // A tentativa é disparada diretamente pelo clique/toque para cumprir
+    // a exigência de "user gesture" dos navegadores mobile.
+    if (isTouchMobileLayout()) {
+      requestLandscapeExperience();
+    }
+
+    startGame(level);
+  });
+
+  landscapeBtn.addEventListener("click", async () => {
+    unlockAudio();
+    await requestLandscapeExperience();
   });
 
   soundBtn.addEventListener("click", () => {
@@ -1530,5 +1646,6 @@
   });
 
   updateProgressUI();
+  updateOrientationGate();
   resizeCanvas();
 })();

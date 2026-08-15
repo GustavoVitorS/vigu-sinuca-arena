@@ -1,62 +1,63 @@
 # VIGU Sinuca Arena 🎱
 
-A pool game with rules inspired by 8-ball, built using **HTML, CSS, and vanilla JavaScript**—no frameworks or external dependencies. It is designed to run directly in the browser and be hosted for free on **GitHub Pages**.
+Jogo de sinuca com regras inspiradas em 8-ball feito em **HTML, CSS e JavaScript puro**, sem frameworks e sem dependências externas. Foi pensado para rodar diretamente no navegador e ser publicado gratuitamente no **GitHub Pages**.
 
-## Features
+## Recursos
 
-- Pool table rendered using `<canvas>`.
-- Physics for balls, collisions, friction, cushions, and pockets.
-- Aiming via mouse and touch.
-- Gesture-based shots: hold, pull the cue back, and release.
-- Shot power is proportional to the pull-back distance.
-- CPU opponent with four difficulty levels:
-- Easy
-- Medium
-- Hard
-- HARDCORE
-- HARDCORE mode unlocks only after winning a match at each of the three initial levels.
-- Progress saved in the browser's `localStorage`.
-- Responsive interface for desktop, tablet, and mobile.
-- Custom sound effects for shots, collisions, cushion bounces, pocketing, victory, and defeat.
-- 100% static project, ideal for GitHub Pages.
+- Mesa de sinuca renderizada em `<canvas>`.
+- Física de bolas, colisões, atrito, bordas e caçapas.
+- Mira com mouse e toque.
+- Tacada por gesto: segure, puxe o taco para trás e solte.
+- A força é proporcional à distância puxada.
+- CPU com quatro níveis:
+  - Fácil
+  - Médio
+  - Difícil
+  - HARDCORE
+- O HARDCORE só é desbloqueado depois de vencer uma partida em cada um dos três níveis iniciais.
+- Progresso salvo no `localStorage` do navegador.
+- Interface responsiva para computador, tablet e celular.
+- Efeitos sonoros próprios para tacada, colisão, tabela, caçapa, vitória e derrota.
+- Projeto 100% estático, ideal para GitHub Pages.
 
-## Controls
+## Controles
 
-- **Desktop:** Move the mouse to aim. Click and hold on the table, drag in the direction opposite to your aim to pull back the cue, and release to shoot.
-- **Mobile/Tablet:** Tap in the direction you want to aim, hold your finger down, drag backward, and release.
-- A quick click or tap simply adjusts the aim without accidentally firing a shot.
+- **Desktop:** mova o mouse para mirar. Clique e segure na mesa, arraste na direção oposta à mira para puxar o taco e solte para disparar.
+- **Celular/tablet:** toque na direção em que deseja mirar, mantenha o dedo pressionado, arraste para trás e solte.
+- Um clique/toque curto apenas ajusta a mira e não dispara acidentalmente.
 
-## How to play locally
+## Como jogar localmente
 
-Simply open `index.html` in your browser.
+Basta abrir `index.html` no navegador.
 
-To avoid restrictions in some browsers, you can also run a local server:
+Para evitar restrições de alguns navegadores, você também pode rodar um servidor local:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Then visit `http://localhost:8080`.
+Depois acesse `http://localhost:8080`.
 
-## Publishing to GitHub Pages
+## Publicar no GitHub Pages
 
-1. Create a GitHub repository, e.g., `vigu-sinuca-arena`.
-2. Push the project files to the `main` branch.
-3. In the repository, go to **Settings → Pages**. 4. Under **Build and deployment**, select **Deploy from a branch**.
-5. Select the `main` branch and the `/ (root)` folder.
-6. Click **Save**.
-7. After a few moments, GitHub will display the game's public URL.
+1. Crie um repositório no GitHub, por exemplo `vigu-sinuca-arena`.
+2. Envie os arquivos deste projeto para a branch `main`.
+3. No repositório, abra **Settings → Pages**.
+4. Em **Build and deployment**, selecione **Deploy from a branch**.
+5. Selecione a branch `main` e a pasta `/ (root)`.
+6. Clique em **Save**.
+7. Depois de alguns instantes, o GitHub mostrará a URL pública do jogo.
 
-## Note on the rules
+## Observação sobre as regras
 
-The game follows a simplified version of 8-ball rules, suitable for quick matches against the CPU:
+O jogo segue uma versão simplificada das regras de 8-ball, adequada para partidas rápidas contra a CPU:
 
-- The first valid ball pocketed determines solids vs. stripes.
-- After clearing your group, you must pocket the 8-ball.
-- Pocketing the 8-ball prematurely results in a loss.
-- Pocketing the cue ball results in a foul, and it is automatically placed back on the table.
+- A primeira bola válida encaçapada define lisas/listradas.
+- Depois de limpar seu grupo, você deve encaçapar a bola 8.
+- Encaçapar a bola 8 antes da hora causa derrota.
+- Encaçapar a bola branca causa falta e ela é recolocada automaticamente.
 
-## Structure
+## Estrutura
 
 ```text
 vigu-sinuca-arena/
@@ -74,6 +75,26 @@ vigu-sinuca-arena/
 └── README.md
 ```
 
-## License
+## Licença
 
-You may use, modify, and publish this project on your GitHub.
+Você pode usar, modificar e publicar este projeto no seu GitHub.
+
+## Ajuste de física da V5
+
+- Tacadas em 100% agora preservam muito mais energia em percursos longos.
+- O atrito de rolamento foi recalibrado para não fazer a bola branca "morrer" antes de atravessar a mesa.
+- O critério de parada usa velocidade visual compensada pela proporção da mesa, mantendo o comportamento consistente em qualquer ângulo.
+- A potência máxima recebeu um pequeno reforço sem alterar o gesto de puxar e soltar o taco.
+
+
+## V6 — modo mobile horizontal
+
+A gameplay em celular foi otimizada para paisagem:
+
+- Ao iniciar uma dificuldade em um dispositivo touch, o jogo tenta entrar em tela cheia e solicitar orientação `landscape`.
+- Em navegadores que permitem `screen.orientation.lock("landscape")`, a rotação acontece após o toque que inicia a partida.
+- Se o navegador não permitir bloqueio automático de orientação, aparece uma tela orientando o jogador a girar o aparelho; ao virar o celular, a partida é liberada automaticamente.
+- Durante a partida em paisagem, a barra superior é ocultada e HUD, mesa e controles são compactados para ocupar praticamente todo o viewport.
+- O `manifest.webmanifest` define `orientation: landscape` para uso quando o jogo for instalado como web app/PWA.
+
+> Observação: navegadores móveis não permitem que uma página comum force rotação de tela no carregamento sem interação do usuário. Por isso a V6 usa fullscreen + Screen Orientation API quando disponível e um fallback visual quando não estiver.

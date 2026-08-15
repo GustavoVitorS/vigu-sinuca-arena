@@ -1,0 +1,11 @@
+{
+  "name": "VIGU Sinuca Arena",
+  "short_name": "VIGU Sinuca",
+  "description": "Jogo de sinuca responsivo com desafio da bola 8.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#061117",
+  "theme_color": "#08151a"
+}

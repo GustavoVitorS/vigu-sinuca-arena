@@ -847,3 +847,342 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   V6 — experiência mobile em paisagem
+   ========================================================= */
+
+.orientation-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  display: grid;
+  place-items: center;
+  padding: max(18px, env(safe-area-inset-top))
+           max(18px, env(safe-area-inset-right))
+           max(18px, env(safe-area-inset-bottom))
+           max(18px, env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at 50% 25%, rgba(50, 215, 255, .18), transparent 24rem),
+    rgba(2, 8, 11, .94);
+  backdrop-filter: blur(18px);
+}
+
+.orientation-gate.hidden {
+  display: none;
+}
+
+.orientation-card {
+  width: min(430px, 100%);
+  border-radius: 26px;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.rotate-phone {
+  height: 74px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.phone-shape {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 68px;
+  border: 3px solid currentColor;
+  border-radius: 10px;
+  font-size: 0;
+  animation: phoneRotateHint 1.9s ease-in-out infinite;
+}
+
+.phone-shape::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  align-self: end;
+  margin-bottom: 5px;
+}
+
+.rotate-arrow {
+  font-size: 2.35rem;
+  animation: arrowPulse 1.9s ease-in-out infinite;
+}
+
+.orientation-kicker {
+  margin: 4px 0 8px;
+  color: var(--accent);
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: .18em;
+}
+
+.orientation-card h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 8vw, 2.5rem);
+}
+
+.orientation-card p:not(.orientation-kicker) {
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 12px auto 18px;
+}
+
+.orientation-card small {
+  display: block;
+  color: var(--muted);
+  margin-top: 12px;
+  line-height: 1.45;
+}
+
+.landscape-btn {
+  width: 100%;
+  border: 0;
+  border-radius: 15px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-weight: 950;
+  color: #021014;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 12px 35px rgba(50, 215, 255, .22);
+}
+
+@keyframes phoneRotateHint {
+  0%, 28% { transform: rotate(0deg); }
+  62%, 100% { transform: rotate(90deg); }
+}
+
+@keyframes arrowPulse {
+  0%, 100% { transform: rotate(0deg); opacity: .65; }
+  50% { transform: rotate(70deg); opacity: 1; }
+}
+
+/*
+  Em celulares/telas touch em paisagem, a partida ocupa o viewport inteiro.
+  A barra superior some apenas durante a gameplay, liberando espaço para a mesa.
+*/
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 650px) {
+  body.game-active {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body.game-active .topbar {
+    display: none;
+  }
+
+  body.game-active main {
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+
+  body.game-active #gameScreen {
+    height: 100dvh;
+    min-height: 100dvh;
+    padding:
+      max(4px, env(safe-area-inset-top))
+      max(6px, env(safe-area-inset-right))
+      max(4px, env(safe-area-inset-bottom))
+      max(6px, env(safe-area-inset-left));
+    overflow: hidden;
+  }
+
+  body.game-active .game-layout {
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  body.game-active .hud {
+    min-height: 0;
+    margin-bottom: 4px;
+    padding: 3px 6px;
+    border-radius: 12px;
+    gap: 5px;
+  }
+
+  body.game-active .player-card {
+    padding: 2px 5px;
+    gap: 6px;
+    border-radius: 10px;
+  }
+
+  body.game-active .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: .47rem;
+  }
+
+  body.game-active .player-info span,
+  body.game-active .center-hud small {
+    font-size: .58rem;
+  }
+
+  body.game-active .player-info strong {
+    margin-top: 0;
+    font-size: .7rem;
+  }
+
+  body.game-active .center-hud {
+    min-width: 132px;
+    padding: 0;
+  }
+
+  body.game-active .center-hud > span {
+    font-size: .54rem;
+    margin-bottom: 0;
+  }
+
+  body.game-active .center-hud strong {
+    font-size: .78rem;
+  }
+
+  body.game-active .center-hud small {
+    max-width: 190px;
+    margin: 0 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  body.game-active .table-stage {
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) clamp(112px, 17vw, 145px);
+    gap: 5px;
+  }
+
+  body.game-active .table-wrap {
+    height: 100%;
+    min-height: 0;
+    border-radius: 14px;
+  }
+
+  body.game-active #gameCanvas {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    aspect-ratio: auto;
+  }
+
+  body.game-active .controls {
+    height: 100%;
+    min-height: 0;
+    padding: 7px;
+    border-radius: 13px;
+    gap: 6px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  body.game-active .control-head {
+    gap: 5px;
+  }
+
+  body.game-active .control-label {
+    font-size: .53rem;
+    letter-spacing: .07em;
+  }
+
+  body.game-active #powerValue {
+    font-size: .92rem;
+  }
+
+  body.game-active .drag-state {
+    padding: 5px 6px;
+    font-size: .52rem;
+  }
+
+  body.game-active .power-meter {
+    width: 11px;
+    height: min(34dvh, 120px);
+    min-height: 50px;
+    align-self: center;
+    align-items: flex-end;
+    flex: 0 1 auto;
+  }
+
+  body.game-active .power-fill {
+    width: 100%;
+    height: 0%;
+  }
+
+  body.game-active .gesture-card,
+  body.game-active .control-hints {
+    display: none;
+  }
+
+  body.game-active .mini-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    margin-top: auto;
+  }
+
+  body.game-active .mini-actions button {
+    padding: 6px 4px;
+    border-radius: 8px;
+    font-size: .62rem;
+    min-height: 29px;
+  }
+
+  body.game-active .thinking {
+    top: 7px;
+    padding: 6px 9px;
+    font-size: .62rem;
+  }
+}
+
+/* Portrait em celular: a partida fica bloqueada por um aviso de rotação. */
+@media (pointer: coarse) and (orientation: portrait) and (max-width: 900px) {
+  body.game-active #gameScreen {
+    visibility: hidden;
+  }
+
+  body.game-active .orientation-gate {
+    visibility: visible;
+  }
+}
+
+/* Telefones muito baixos/compactos em paisagem. */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 390px) {
+  body.game-active .hud {
+    padding: 2px 4px;
+  }
+
+  body.game-active .avatar {
+    width: 26px;
+    height: 26px;
+  }
+
+  body.game-active .center-hud small {
+    display: none;
+  }
+
+  body.game-active .table-stage {
+    grid-template-columns: minmax(0, 1fr) 104px;
+  }
+
+  body.game-active .controls {
+    padding: 5px;
+  }
+
+  body.game-active .power-meter {
+    height: min(29dvh, 90px);
+  }
+
+  body.game-active .mini-actions button {
+    min-height: 25px;
+    padding: 4px 3px;
+  }
+}
