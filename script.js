@@ -41,7 +41,7 @@
   const modalText = document.getElementById("modalText");
   const modalActions = document.getElementById("modalActions");
 
-  const GAME_VERSION = "9.0-final-mobile-performance";
+  const GAME_VERSION = "10.0-final-break-power";
   const STORAGE_KEY = "vigu-sinuca-arena-progress-v1";
   const LEGACY_STORAGE_KEY = "vigu-cue-clash-progress-v1";
 
@@ -1025,10 +1025,17 @@
 
     // Potência calibrada para que 100% continue realmente sendo uma
     // tacada forte mesmo em trajetórias longas.
-    // V9: força máxima calibrada junto ao atrito dinâmico.
-    // Uma tacada 100% continua forte em longa distância, mas a mesa
-    // não fica vários segundos esperando movimentos quase invisíveis.
-    const speed = 1.80 * Math.max(.08, Math.min(1, power));
+    /*
+      V10 — curva de potência de taco.
+
+      A V9 ainda era muito linear: 100% não se destacava o suficiente de uma
+      tacada média. Agora a parte final da puxada cresce de forma progressiva:
+      - pouca força continua controlável;
+      - 50% permanece próximo do comportamento anterior;
+      - 80–100% recebe bastante energia extra para abertura do rack.
+    */
+    const clampedPower = Math.max(.08, Math.min(1, power));
+    const speed = 0.10 + 2.75 * Math.pow(clampedPower, 1.70);
     const velocity = visualAngleToVelocity(angle, speed);
     cue.vx = velocity.vx;
     cue.vy = velocity.vy;
@@ -1040,7 +1047,7 @@
   function isAnyBallMoving() {
     // 0.016 em unidades visuais corresponde a apenas alguns pixels/segundo
     // numa tela mobile. Abaixo disso o movimento já é imperceptível.
-    return balls.some(b => !b.pocketed && getVisualSpeed(b) > 0.016);
+    return balls.some(b => !b.pocketed && getVisualSpeed(b) > 0.018);
   }
 
   function getVisualSpeed(ball) {
@@ -1063,12 +1070,15 @@
     */
     let base;
 
-    if (speed > 0.42) {
-      base = 0.992;
-    } else if (speed > 0.13) {
-      base = 0.965;
+    if (speed > 0.55) {
+      // Alta velocidade: conserva energia para abertura e espalhamento.
+      base = 0.996;
+    } else if (speed > 0.16) {
+      // Média velocidade: mantém as bolas vivas sem parecer gelo.
+      base = 0.980;
     } else {
-      base = 0.885;
+      // Final da rolagem: encerra rapidamente movimentos imperceptíveis.
+      base = 0.895;
     }
 
     return Math.pow(base, dt * 60);
@@ -1087,7 +1097,7 @@
       b.vy *= rollingFriction;
 
       // Snap de repouso apenas quando a velocidade já é visualmente irrelevante.
-      if (getVisualSpeed(b) < 0.016) {
+      if (getVisualSpeed(b) < 0.018) {
         b.vx = 0;
         b.vy = 0;
       }
@@ -1115,21 +1125,21 @@
 
     if (b.x - rX < cushion) {
       b.x = rX + cushion;
-      b.vx = Math.abs(b.vx) * .91;
+      b.vx = Math.abs(b.vx) * .94;
       playRail();
     } else if (b.x + rX > 1 - cushion) {
       b.x = 1 - rX - cushion;
-      b.vx = -Math.abs(b.vx) * .91;
+      b.vx = -Math.abs(b.vx) * .94;
       playRail();
     }
 
     if (b.y - rY < cushion) {
       b.y = rY + cushion;
-      b.vy = Math.abs(b.vy) * .91;
+      b.vy = Math.abs(b.vy) * .94;
       playRail();
     } else if (b.y + rY > 1 - cushion) {
       b.y = 1 - rY - cushion;
-      b.vy = -Math.abs(b.vy) * .91;
+      b.vy = -Math.abs(b.vy) * .94;
       playRail();
     }
   }
@@ -1191,7 +1201,10 @@
     const rel = (avx - bvx) * nx + (a.vy - b.vy) * ny;
     if (rel <= 0) return;
 
-    const impulse = rel * .96;
+    // Restituição maior para uma quebra de rack mais viva.
+    // 0.985 aqui equivale aproximadamente a e=0.97 em massas iguais:
+    // a energia passa melhor da branca para o conjunto sem ficar elástica demais.
+    const impulse = rel * .985;
     a.vx -= (impulse * nx) / sx;
     a.vy -= impulse * ny;
     b.vx += (impulse * nx) / sx;
@@ -1209,7 +1222,26 @@
       physicsAccumulator = Math.min(.08, physicsAccumulator + frameDt);
       let steps = 0;
       while (physicsAccumulator >= PHYSICS_STEP && steps < 10) {
-        updatePhysics(PHYSICS_STEP);
+        /*
+          Em tacadas muito rápidas fazemos substeps somente quando necessário.
+          O jogo continua leve em repouso/tacadas normais, mas uma quebra a
+          100% recebe resolução física extra para evitar tunneling e melhorar
+          a transferência de energia no rack.
+        */
+        const maxVisualSpeed = balls.reduce(
+          (maxSpeed, ball) => ball.pocketed ? maxSpeed : Math.max(maxSpeed, getVisualSpeed(ball)),
+          0
+        );
+
+        const collisionSubsteps =
+          maxVisualSpeed > 2.10 ? 3 :
+          maxVisualSpeed > 1.20 ? 2 : 1;
+
+        const subDt = PHYSICS_STEP / collisionSubsteps;
+        for (let sub = 0; sub < collisionSubsteps; sub++) {
+          updatePhysics(subDt);
+        }
+
         physicsAccumulator -= PHYSICS_STEP;
         steps++;
       }

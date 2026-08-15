@@ -143,3 +143,14 @@ A gameplay em celular foi otimizada para paisagem:
 - O próximo turno é liberado assim que o movimento deixa de ser perceptível.
 - O tempo de decisão visual da CPU foi reduzido.
 - A simulação passou de 180 Hz para 120 Hz, mantendo estabilidade de colisão e reduzindo carga de CPU em mobile.
+
+
+## V10 FINAL — potência e quebra do rack
+
+- A força do taco agora usa uma curva progressiva: 50% continua controlável, enquanto 80–100% fica muito mais forte.
+- Uma tacada em 100% passa de aproximadamente 1,80 para 2,85 unidades visuais de velocidade inicial.
+- Bolas em alta velocidade preservam mais energia.
+- A restituição das colisões foi aumentada para transferir melhor o impacto entre as bolas.
+- As tabelas devolvem um pouco mais de velocidade.
+- Tacadas muito rápidas usam substeps físicos adaptativos para reduzir o risco de atravessar bolas durante a quebra.
+- O comportamento de baixa velocidade continua desacelerando rápido para não reintroduzir demora entre os turnos.
