@@ -126,3 +126,20 @@ A gameplay em celular foi otimizada para paisagem:
 - Layout específico para telas próximas de 568×320 e 640×360.
 - Controles laterais mais estreitos e compactos.
 - Melhor respeito às safe areas e ao viewport disponível.
+
+
+## V9 FINAL — responsividade universal e gameplay mais rápida
+
+### Responsividade
+- O painel de força não depende mais de breakpoints de modelos específicos.
+- Em landscape mobile, "FORÇA DA TACADA" vira automaticamente "FORÇA".
+- O medidor de potência usa o espaço vertical restante, em vez de uma altura fixa.
+- O layout usa `VisualViewport` para respeitar o espaço realmente disponível quando o navegador/Android mantém barras visíveis.
+- Em painéis extremamente estreitos, os botões preservam os ícones e ocultam o texto antes de cortar o layout.
+- O canvas usa DPR reduzido em dispositivos touch para melhorar desempenho em celulares mais simples.
+
+### Ritmo da partida
+- O atrito agora é dinâmico: tacadas fortes preservam alcance, enquanto movimentos finais muito lentos param rapidamente.
+- O próximo turno é liberado assim que o movimento deixa de ser perceptível.
+- O tempo de decisão visual da CPU foi reduzido.
+- A simulação passou de 180 Hz para 120 Hz, mantendo estabilidade de colisão e reduzindo carga de CPU em mobile.

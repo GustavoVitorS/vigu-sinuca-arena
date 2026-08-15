@@ -41,7 +41,7 @@
   const modalText = document.getElementById("modalText");
   const modalActions = document.getElementById("modalActions");
 
-  const GAME_VERSION = "8.0-turns-small-mobile";
+  const GAME_VERSION = "9.0-final-mobile-performance";
   const STORAGE_KEY = "vigu-sinuca-arena-progress-v1";
   const LEGACY_STORAGE_KEY = "vigu-cue-clash-progress-v1";
 
@@ -52,7 +52,7 @@
       powerError: 0.28,
       smartChance: 0.30,
       bankChance: 0.00,
-      think: 900
+      think: 420
     },
     medium: {
       name: "MÉDIO",
@@ -60,7 +60,7 @@
       powerError: 0.16,
       smartChance: 0.62,
       bankChance: 0.05,
-      think: 780
+      think: 360
     },
     hard: {
       name: "DIFÍCIL",
@@ -68,7 +68,7 @@
       powerError: 0.08,
       smartChance: 0.88,
       bankChance: 0.13,
-      think: 680
+      think: 310
     },
     hardcore: {
       name: "HARDCORE",
@@ -76,7 +76,7 @@
       powerError: 0.025,
       smartChance: 0.995,
       bankChance: 0.38,
-      think: 520
+      think: 260
     }
   };
 
@@ -129,7 +129,8 @@
   };
 
   let physicsAccumulator = 0;
-  const PHYSICS_STEP = 1 / 180;
+  // 120 Hz mantém colisões estáveis e reduz o custo em celulares menores.
+  const PHYSICS_STEP = 1 / 120;
 
   let soundEnabled = true;
   let audioUnlocked = false;
@@ -278,9 +279,24 @@
     return fullscreenEntered || orientationLocked;
   }
 
+  function syncVisualViewport() {
+    const viewport = window.visualViewport;
+    const viewportWidth = Math.max(1, viewport ? viewport.width : window.innerWidth);
+    const viewportHeight = Math.max(1, viewport ? viewport.height : window.innerHeight);
+
+    document.documentElement.style.setProperty("--game-vw", `${viewportWidth}px`);
+    document.documentElement.style.setProperty("--game-vh", `${viewportHeight}px`);
+  }
+
   function resizeCanvas() {
+    syncVisualViewport();
+
     const rect = canvas.getBoundingClientRect();
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+    // DPR menor em touch reduz bastante a carga de renderização em aparelhos
+    // compactos sem deixar a mesa visualmente borrada.
+    const maxDpr = isTouchMobileLayout() ? 1.5 : 2;
+    DPR = Math.min(window.devicePixelRatio || 1, maxDpr);
     canvas.width = Math.max(1, Math.round(rect.width * DPR));
     canvas.height = Math.max(1, Math.round(rect.height * DPR));
     W = rect.width;
@@ -301,9 +317,22 @@
   }
 
   window.addEventListener("resize", () => {
+    syncVisualViewport();
     resizeCanvas();
     updateOrientationGate();
   });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+      syncVisualViewport();
+      resizeCanvas();
+      updateOrientationGate();
+    });
+
+    window.visualViewport.addEventListener("scroll", () => {
+      syncVisualViewport();
+    });
+  }
   window.addEventListener("orientationchange", () => {
     setTimeout(updateOrientationGate, 80);
     setTimeout(resizeCanvas, 140);
@@ -996,7 +1025,10 @@
 
     // Potência calibrada para que 100% continue realmente sendo uma
     // tacada forte mesmo em trajetórias longas.
-    const speed = 1.58 * Math.max(.08, Math.min(1, power));
+    // V9: força máxima calibrada junto ao atrito dinâmico.
+    // Uma tacada 100% continua forte em longa distância, mas a mesa
+    // não fica vários segundos esperando movimentos quase invisíveis.
+    const speed = 1.80 * Math.max(.08, Math.min(1, power));
     const velocity = visualAngleToVelocity(angle, speed);
     cue.vx = velocity.vx;
     cue.vy = velocity.vy;
@@ -1006,7 +1038,9 @@
   }
 
   function isAnyBallMoving() {
-    return balls.some(b => !b.pocketed && Math.hypot(b.vx, b.vy) > 0.0022);
+    // 0.016 em unidades visuais corresponde a apenas alguns pixels/segundo
+    // numa tela mobile. Abaixo disso o movimento já é imperceptível.
+    return balls.some(b => !b.pocketed && getVisualSpeed(b) > 0.016);
   }
 
   function getVisualSpeed(ball) {
@@ -1017,28 +1051,43 @@
     return Math.hypot(ball.vx * aspect, ball.vy);
   }
 
+  function frictionForVisualSpeed(speed, dt) {
+    /*
+      Atrito dinâmico:
+      - alta velocidade: conserva energia para jogadas longas;
+      - média velocidade: desacelera com naturalidade;
+      - velocidade muito baixa: encerra rapidamente a "cauda" quase invisível.
+
+      Isso resolve a demora entre uma tacada terminar e o próximo turno começar,
+      sem voltar ao problema antigo de uma tacada a 100% morrer no meio da mesa.
+    */
+    let base;
+
+    if (speed > 0.42) {
+      base = 0.992;
+    } else if (speed > 0.13) {
+      base = 0.965;
+    } else {
+      base = 0.885;
+    }
+
+    return Math.pow(base, dt * 60);
+  }
+
   function updatePhysics(dt) {
     const moving = balls.filter(b => !b.pocketed);
-
-    // A versão anterior usava 0.987 por frame de referência, o que removia
-    // aproximadamente metade da velocidade a cada segundo. Em uma tacada
-    // longa, até 100% de força podia morrer antes de atravessar a mesa.
-    //
-    // 0.996 mantém uma desaceleração perceptível, mas permite que uma tacada
-    // máxima atravesse a mesa inteira com energia suficiente para colisões
-    // e jogadas de longa distância.
-    const rollingFriction = Math.pow(0.996, dt * 60);
 
     for (const b of moving) {
       b.x += b.vx * dt;
       b.y += b.vy * dt;
+
+      const visualSpeed = getVisualSpeed(b);
+      const rollingFriction = frictionForVisualSpeed(visualSpeed, dt);
       b.vx *= rollingFriction;
       b.vy *= rollingFriction;
 
-      // Critério de parada baseado na velocidade visual, e não apenas nas
-      // coordenadas normalizadas. Assim o comportamento é consistente em
-      // qualquer ângulo.
-      if (getVisualSpeed(b) < 0.0052) {
+      // Snap de repouso apenas quando a velocidade já é visualmente irrelevante.
+      if (getVisualSpeed(b) < 0.016) {
         b.vx = 0;
         b.vy = 0;
       }
@@ -1159,7 +1208,7 @@
     if (gameScreen.classList.contains("active") && balls.length) {
       physicsAccumulator = Math.min(.08, physicsAccumulator + frameDt);
       let steps = 0;
-      while (physicsAccumulator >= PHYSICS_STEP && steps < 16) {
+      while (physicsAccumulator >= PHYSICS_STEP && steps < 10) {
         updatePhysics(PHYSICS_STEP);
         physicsAccumulator -= PHYSICS_STEP;
         steps++;
@@ -1777,6 +1826,7 @@
     if (e.target === modalBackdrop) hideModal();
   });
 
+  syncVisualViewport();
   updateProgressUI();
   updateOrientationGate();
   resizeCanvas();

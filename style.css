@@ -1438,3 +1438,337 @@ h1 {
     font-size: .43rem;
   }
 }
+
+/* =========================================================
+   V9 FINAL — mobile fluido em qualquer landscape
+   ========================================================= */
+
+.label-compact {
+  display: none;
+}
+
+.action-icon {
+  display: inline-block;
+}
+
+.action-text {
+  display: inline-block;
+}
+
+/*
+  A altura vem do VisualViewport quando disponível. Isso é importante em
+  aparelhos Samsung/Android em que barra de navegação e UI do navegador
+  reduzem o espaço realmente utilizável.
+*/
+@media (pointer: coarse) and (orientation: landscape) {
+  body.game-active {
+    width: var(--game-vw, 100vw);
+    height: var(--game-vh, 100dvh);
+    max-width: 100vw;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  body.game-active main,
+  body.game-active #gameScreen {
+    width: 100%;
+    height: var(--game-vh, 100dvh);
+    min-height: 0;
+    max-height: var(--game-vh, 100dvh);
+    overflow: hidden;
+  }
+
+  body.game-active #gameScreen {
+    padding:
+      max(2px, env(safe-area-inset-top))
+      max(3px, env(safe-area-inset-right))
+      max(2px, env(safe-area-inset-bottom))
+      max(3px, env(safe-area-inset-left));
+  }
+
+  body.game-active .game-layout {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  body.game-active .hud {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-rows: auto;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 2px;
+    padding: clamp(1px, .55dvh, 4px) clamp(3px, .7vw, 7px);
+    gap: clamp(2px, .6vw, 6px);
+    border-radius: 9px;
+  }
+
+  body.game-active .center-hud {
+    grid-column: auto;
+    grid-row: auto;
+    order: initial;
+    min-width: clamp(66px, 13vw, 130px);
+    padding: 0 2px;
+  }
+
+  body.game-active .player-card,
+  body.game-active .player-info {
+    min-width: 0;
+  }
+
+  body.game-active .player-card {
+    padding: 1px clamp(2px, .5vw, 6px);
+    gap: clamp(3px, .5vw, 7px);
+  }
+
+  body.game-active .avatar {
+    width: clamp(21px, 6dvh, 32px);
+    height: clamp(21px, 6dvh, 32px);
+    flex: 0 0 clamp(21px, 6dvh, 32px);
+    border-radius: 7px;
+    font-size: clamp(.34rem, 1.5dvh, .5rem);
+  }
+
+  body.game-active .player-info span,
+  body.game-active .player-info strong {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  body.game-active .player-info span {
+    font-size: clamp(.44rem, 1.45dvh, .60rem);
+  }
+
+  body.game-active .player-info strong {
+    font-size: clamp(.52rem, 1.7dvh, .72rem);
+  }
+
+  body.game-active .center-hud > span {
+    font-size: clamp(.43rem, 1.35dvh, .56rem);
+  }
+
+  body.game-active .center-hud strong {
+    font-size: clamp(.58rem, 1.9dvh, .80rem);
+    line-height: 1.05;
+  }
+
+  body.game-active .center-hud small {
+    display: none;
+  }
+
+  /*
+    O painel lateral agora é dimensionado continuamente, sem depender de um
+    breakpoint específico de modelo de celular.
+  */
+  body.game-active .table-stage {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) clamp(72px, 13.5vw, 112px);
+    gap: clamp(2px, .55vw, 5px);
+  }
+
+  body.game-active .table-wrap {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    border-radius: clamp(8px, 1.5vw, 14px);
+  }
+
+  body.game-active #gameCanvas {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 0;
+    min-height: 0;
+    aspect-ratio: auto;
+  }
+
+  /*
+    Painel de força: nada de "FORÇA DA TACADA" quebrando em 3 linhas.
+    Em mobile usamos "FORÇA" e todos os componentes se adaptam à altura real.
+  */
+  body.game-active .controls {
+    container-type: inline-size;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+    max-height: 100%;
+    padding: clamp(3px, .85dvh, 7px);
+    gap: clamp(3px, .9dvh, 7px);
+    border-radius: clamp(8px, 1.4vw, 13px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body.game-active .control-head {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-items: center;
+    gap: clamp(2px, .55dvh, 4px);
+    text-align: center;
+  }
+
+  body.game-active .control-head > div {
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+  }
+
+  body.game-active .control-label {
+    width: 100%;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+    letter-spacing: .08em;
+  }
+
+  body.game-active .control-label .label-full {
+    display: none;
+  }
+
+  body.game-active .control-label .label-compact {
+    display: inline;
+    font-size: clamp(.42rem, 1.4dvh, .58rem);
+  }
+
+  body.game-active #powerValue {
+    display: block;
+    margin-top: 1px;
+    font-size: clamp(.66rem, 2.15dvh, .98rem);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  body.game-active .drag-state {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: clamp(17px, 5dvh, 25px);
+    padding: 2px 3px;
+    border-radius: 999px;
+    font-size: clamp(.38rem, 1.35dvh, .54rem);
+    line-height: 1;
+    letter-spacing: .04em;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  /*
+    O medidor deixa de ter altura fixa. Ele recebe apenas o espaço vertical
+    que sobrou entre cabeçalho e botões, evitando qualquer corte.
+  */
+  body.game-active .power-meter {
+    flex: 1 1 auto;
+    width: clamp(7px, 1.3vw, 11px);
+    height: auto;
+    min-height: 24px;
+    max-height: none;
+    margin: 0 auto;
+    align-self: center;
+  }
+
+  body.game-active .gesture-card,
+  body.game-active .control-hints {
+    display: none;
+  }
+
+  body.game-active .mini-actions {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2px, .55dvh, 4px);
+    margin-top: 0;
+  }
+
+  body.game-active .mini-actions button {
+    width: 100%;
+    min-width: 0;
+    min-height: clamp(19px, 5.5dvh, 28px);
+    padding: 2px 3px;
+    border-radius: 7px;
+    font-size: clamp(.42rem, 1.45dvh, .62rem);
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  body.game-active .thinking {
+    top: 4px;
+    max-width: 80%;
+    padding: 4px 6px;
+    font-size: clamp(.48rem, 1.5dvh, .62rem);
+  }
+}
+
+/* Se o painel ficar estreitíssimo, preservamos primeiro os ícones. */
+@container (max-width: 82px) {
+  body.game-active .controls .action-text {
+    display: none;
+  }
+
+  body.game-active .controls .mini-actions button {
+    font-size: .72rem;
+  }
+
+  body.game-active .controls .drag-state {
+    letter-spacing: 0;
+  }
+}
+
+/* Aparelhos muito baixos: remove informação secundária, nunca a mesa. */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 320px) {
+  body.game-active .player-info span,
+  body.game-active .center-hud > span {
+    display: none;
+  }
+
+  body.game-active .hud {
+    padding-block: 1px;
+  }
+
+  body.game-active .avatar {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+  }
+
+  body.game-active .table-stage {
+    grid-template-columns: minmax(0, 1fr) clamp(66px, 12vw, 82px);
+  }
+
+  body.game-active .controls {
+    padding: 2px;
+    gap: 2px;
+  }
+
+  body.game-active .drag-state {
+    min-height: 16px;
+  }
+
+  body.game-active .power-meter {
+    min-height: 18px;
+  }
+
+  body.game-active .mini-actions button {
+    min-height: 18px;
+  }
+}
