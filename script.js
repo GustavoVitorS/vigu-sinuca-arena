@@ -41,6 +41,7 @@
   const modalText = document.getElementById("modalText");
   const modalActions = document.getElementById("modalActions");
 
+  const GAME_VERSION = "7.0-touch-lock";
   const STORAGE_KEY = "vigu-sinuca-arena-progress-v1";
   const LEGACY_STORAGE_KEY = "vigu-cue-clash-progress-v1";
 
@@ -811,6 +812,33 @@
     setPowerDisplay(0);
   }
 
+  function isTouchInCuePullZone(pos, cue) {
+    const cp = normToPx(cue);
+    const dx = Math.cos(aim.angle);
+    const dy = Math.sin(aim.angle);
+
+    const vx = pos.x - cp.x;
+    const vy = pos.y - cp.y;
+
+    // Coordenada ao longo da direção da tacada.
+    // Valor negativo = lado onde o taco já está desenhado.
+    const longitudinal = vx * dx + vy * dy;
+
+    // Distância perpendicular até o eixo do taco.
+    const lateral = Math.abs(vx * dy - vy * dx);
+
+    const cueBallRadius = normToPx(cue).r;
+    const rearDistance = -longitudinal;
+    const maxRearDistance = Math.max(230, Math.min(W, H) * .78);
+    const touchTolerance = Math.max(34, cueBallRadius * 3.2);
+
+    return (
+      longitudinal < -cueBallRadius * .35 &&
+      rearDistance <= maxRearDistance &&
+      lateral <= touchTolerance
+    );
+  }
+
   function startCueGesture(e) {
     if (!canPlayerControlCue()) return;
     if (e.pointerType === "mouse" && e.button !== 0) return;
@@ -818,25 +846,44 @@
     const cue = getCueBall();
     if (!cue || cue.pocketed) return;
 
-    // On touch there is no hover state, so the first contact also establishes
-    // the desired shot direction. Desktop keeps the precise hover aim.
+    const pos = clientToCanvas(e.clientX, e.clientY);
+    let preservingTouchAim = false;
+
     if (e.pointerType !== "mouse") {
-      const pos = clientToCanvas(e.clientX, e.clientY);
-      const cp = normToPx(cue);
-      if (Math.hypot(pos.x - cp.x, pos.y - cp.y) > 4) {
-        aim.angle = Math.atan2(pos.y - cp.y, pos.x - cp.x);
-        aim.pointX = pos.x;
-        aim.pointY = pos.y;
+      /*
+        CORREÇÃO MOBILE V7
+
+        Na V6, qualquer novo toque redefinia a mira usando a posição do dedo.
+        Isso causava um problema importante: depois de mirar, ao tocar no taco
+        (que fica atrás da bola branca) para puxá-lo, a mira era recalculada
+        para o lado de trás e girava quase 180 graus.
+
+        Agora:
+        - tocar no lado/área do taco = mantém exatamente a mira atual;
+        - tocar fora da área do taco = define uma nova mira;
+        - durante toda a puxada o ângulo fica travado.
+      */
+      preservingTouchAim = isTouchInCuePullZone(pos, cue);
+
+      if (!preservingTouchAim) {
+        const cp = normToPx(cue);
+        if (Math.hypot(pos.x - cp.x, pos.y - cp.y) > 4) {
+          aim.angle = Math.atan2(pos.y - cp.y, pos.x - cp.x);
+          aim.pointX = pos.x;
+          aim.pointY = pos.y;
+        }
       }
     }
 
-    const pos = clientToCanvas(e.clientX, e.clientY);
     cueGesture.active = true;
     cueGesture.pointerId = e.pointerId;
     cueGesture.pointerType = e.pointerType;
     cueGesture.startX = pos.x;
     cueGesture.startY = pos.y;
     cueGesture.pull = 0;
+
+    // A direção é congelada ANTES de qualquer movimento de força.
+    // updateCueGesture nunca altera este valor.
     cueGesture.lockedAngle = aim.angle;
     cueGesture.maxPull = Math.max(90, Math.min(190, Math.min(W, H) * .34));
 
@@ -844,7 +891,9 @@
     canvas.classList.add("pulling");
     dragState.textContent = "PUXE";
     dragState.classList.add("charging");
-    messageLabel.textContent = "Puxe o taco para trás e solte para bater.";
+    messageLabel.textContent = preservingTouchAim
+      ? "Mira travada. Puxe o taco para trás e solte."
+      : "Puxe para trás sem alterar a direção da mira.";
     setPowerDisplay(0);
     draw();
     e.preventDefault();
@@ -852,14 +901,18 @@
 
   function updateCueGesture(e) {
     if (!cueGesture.active || e.pointerId !== cueGesture.pointerId) return;
+
     const pos = clientToCanvas(e.clientX, e.clientY);
     const moveX = pos.x - cueGesture.startX;
     const moveY = pos.y - cueGesture.startY;
+
+    // IMPORTANTE: usamos somente o ângulo congelado no pointerdown.
+    // O dedo pode sair para os lados durante a puxada sem fazer o taco girar.
     const dx = Math.cos(cueGesture.lockedAngle);
     const dy = Math.sin(cueGesture.lockedAngle);
 
-    // Only movement opposite to the shot direction creates power. Sideways
-    // motion is intentionally ignored, which makes the gesture stable on touch.
+    // Apenas a componente para trás gera força.
+    // Movimento lateral não altera mira nem potência.
     const backwards = -(moveX * dx + moveY * dy);
     cueGesture.pull = Math.max(0, Math.min(cueGesture.maxPull, backwards));
 
@@ -867,8 +920,9 @@
     setPowerDisplay(power);
     dragState.textContent = power < .08 ? "PUXE" : "SOLTE";
     messageLabel.textContent = power < .08
-      ? "Continue puxando o taco para trás."
-      : `Força ${Math.round(power * 100)}% • solte para disparar.`;
+      ? "Mira travada • continue puxando para trás."
+      : `Mira travada • força ${Math.round(power * 100)}% • solte para disparar.`;
+
     draw();
     e.preventDefault();
   }

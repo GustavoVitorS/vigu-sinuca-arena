@@ -98,3 +98,13 @@ A gameplay em celular foi otimizada para paisagem:
 - O `manifest.webmanifest` define `orientation: landscape` para uso quando o jogo for instalado como web app/PWA.
 
 > Observação: navegadores móveis não permitem que uma página comum force rotação de tela no carregamento sem interação do usuário. Por isso a V6 usa fullscreen + Screen Orientation API quando disponível e um fallback visual quando não estiver.
+
+
+## V7 — correção definitiva da puxada no touch
+
+- A mira não gira mais quando o jogador toca no taco para puxá-lo.
+- O toque na região atrás da bola branca, onde o taco está desenhado, preserva a direção atual.
+- Durante a puxada, o ângulo fica completamente travado.
+- Movimento lateral involuntário do dedo é ignorado para a direção da tacada.
+- Tocar em outra região da mesa continua permitindo escolher uma nova direção.
+- Mouse/desktop mantém o comportamento anterior.
