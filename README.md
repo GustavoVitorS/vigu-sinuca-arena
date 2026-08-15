@@ -1,63 +1,67 @@
 # VIGU Sinuca Arena 🎱
 
-Jogo de sinuca com regras inspiradas em 8-ball feito em **HTML, CSS e JavaScript puro**, sem frameworks e sem dependências externas. Foi pensado para rodar diretamente no navegador e ser publicado gratuitamente no **GitHub Pages**.
+A pool game inspired by 8-ball rules, built with **HTML, CSS, and vanilla JavaScript**, with no frameworks or external dependencies. It was designed to run directly in the browser and to be hosted for free with **GitHub Pages**.
 
-## Recursos
+## Features
 
-- Mesa de sinuca renderizada em `<canvas>`.
-- Física de bolas, colisões, atrito, bordas e caçapas.
-- Mira com mouse e toque.
-- Tacada por gesto: segure, puxe o taco para trás e solte.
-- A força é proporcional à distância puxada.
-- CPU com quatro níveis:
-  - Fácil
-  - Médio
-  - Difícil
+- Pool table rendered using `<canvas>`.
+- Ball physics with collisions, friction, cushions, and pockets.
+- Mouse and touch aiming.
+- Gesture-based shots: hold, pull the cue back, and release.
+- Shot power is proportional to the pull-back distance.
+- CPU opponent with four difficulty levels:
+  - Easy
+  - Medium
+  - Hard
   - HARDCORE
-- O HARDCORE só é desbloqueado depois de vencer uma partida em cada um dos três níveis iniciais.
-- Progresso salvo no `localStorage` do navegador.
-- Interface responsiva para computador, tablet e celular.
-- Efeitos sonoros próprios para tacada, colisão, tabela, caçapa, vitória e derrota.
-- Projeto 100% estático, ideal para GitHub Pages.
+- HARDCORE mode is unlocked only after winning one match at each of the three initial difficulty levels.
+- Progress is saved in the browser using `localStorage`.
+- Responsive interface for desktop, tablet, and mobile.
+- Custom sound effects for shots, collisions, cushion impacts, pocketing, victory, and defeat.
+- 100% static project, ideal for GitHub Pages.
 
-## Controles
+## Controls
 
-- **Desktop:** mova o mouse para mirar. Clique e segure na mesa, arraste na direção oposta à mira para puxar o taco e solte para disparar.
-- **Celular/tablet:** toque na direção em que deseja mirar, mantenha o dedo pressionado, arraste para trás e solte.
-- Um clique/toque curto apenas ajusta a mira e não dispara acidentalmente.
+- **Desktop:** move the mouse to aim. Click and hold on the table, drag in the opposite direction of the aim to pull the cue back, then release to shoot.
+- **Mobile/tablet:** tap in the direction you want to aim, keep your finger pressed, drag backward, and release.
+- A short click/tap only adjusts the aim and does not trigger an accidental shot.
 
-## Como jogar localmente
+## Running Locally
 
-Basta abrir `index.html` no navegador.
+Simply open `index.html` in your browser.
 
-Para evitar restrições de alguns navegadores, você também pode rodar um servidor local:
+To avoid restrictions in some browsers, you can also run a local server:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Depois acesse `http://localhost:8080`.
+Then open:
 
-## Publicar no GitHub Pages
+```text
+http://localhost:8080
+```
 
-1. Crie um repositório no GitHub, por exemplo `vigu-sinuca-arena`.
-2. Envie os arquivos deste projeto para a branch `main`.
-3. No repositório, abra **Settings → Pages**.
-4. Em **Build and deployment**, selecione **Deploy from a branch**.
-5. Selecione a branch `main` e a pasta `/ (root)`.
-6. Clique em **Save**.
-7. Depois de alguns instantes, o GitHub mostrará a URL pública do jogo.
+## Deploying to GitHub Pages
 
-## Observação sobre as regras
+1. Create a GitHub repository, for example `vigu-sinuca-arena`.
+2. Upload the project files to the `main` branch.
+3. In the repository, open **Settings → Pages**.
+4. Under **Build and deployment**, select **Deploy from a branch**.
+5. Select the `main` branch and the `/ (root)` folder.
+6. Click **Save**.
+7. After a few moments, GitHub will display the public URL for the game.
 
-O jogo segue uma versão simplificada das regras de 8-ball, adequada para partidas rápidas contra a CPU:
+## Rules
 
-- A primeira bola válida encaçapada define lisas/listradas.
-- Depois de limpar seu grupo, você deve encaçapar a bola 8.
-- Encaçapar a bola 8 antes da hora causa derrota.
-- Encaçapar a bola branca causa falta e ela é recolocada automaticamente.
+The game follows a simplified version of 8-ball rules, designed for quick matches against the CPU:
 
-## Estrutura
+- The first valid ball pocketed determines solids or stripes.
+- After clearing your group, you must pocket the 8-ball.
+- Pocketing the 8-ball too early results in a loss.
+- Pocketing the cue ball is a foul, and the cue ball is automatically repositioned.
+
+## Project Structure
 
 ```text
 vigu-sinuca-arena/
@@ -75,82 +79,81 @@ vigu-sinuca-arena/
 └── README.md
 ```
 
-## Licença
+## License
 
-Você pode usar, modificar e publicar este projeto no seu GitHub.
+You may use, modify, and publish this project on your GitHub account.
 
-## Ajuste de física da V5
+## V5 — Physics Adjustment
 
-- Tacadas em 100% agora preservam muito mais energia em percursos longos.
-- O atrito de rolamento foi recalibrado para não fazer a bola branca "morrer" antes de atravessar a mesa.
-- O critério de parada usa velocidade visual compensada pela proporção da mesa, mantendo o comportamento consistente em qualquer ângulo.
-- A potência máxima recebeu um pequeno reforço sem alterar o gesto de puxar e soltar o taco.
+- Shots at 100% power now preserve significantly more energy over long distances.
+- Rolling friction was recalibrated so the cue ball does not lose all of its energy before crossing the table.
+- The stopping threshold uses visually compensated speed based on the table aspect ratio, keeping movement consistent at any angle.
+- Maximum power received a small boost without changing the pull-and-release gesture.
 
+## V6 — Mobile Landscape Mode
 
-## V6 — modo mobile horizontal
+Mobile gameplay was optimized for landscape orientation:
 
-A gameplay em celular foi otimizada para paisagem:
+- When starting a difficulty level on a touch device, the game attempts to enter fullscreen mode and request `landscape` orientation.
+- On browsers that support `screen.orientation.lock("landscape")`, rotation occurs after the touch that starts the match.
+- If the browser does not allow automatic orientation locking, the game displays a screen asking the player to rotate the device; once the phone is turned sideways, the match is automatically released.
+- During landscape gameplay, the top bar is hidden and the HUD, table, and controls are compacted to use almost the entire viewport.
+- The `manifest.webmanifest` defines `orientation: landscape` for use when the game is installed as a web app/PWA.
 
-- Ao iniciar uma dificuldade em um dispositivo touch, o jogo tenta entrar em tela cheia e solicitar orientação `landscape`.
-- Em navegadores que permitem `screen.orientation.lock("landscape")`, a rotação acontece após o toque que inicia a partida.
-- Se o navegador não permitir bloqueio automático de orientação, aparece uma tela orientando o jogador a girar o aparelho; ao virar o celular, a partida é liberada automaticamente.
-- Durante a partida em paisagem, a barra superior é ocultada e HUD, mesa e controles são compactados para ocupar praticamente todo o viewport.
-- O `manifest.webmanifest` define `orientation: landscape` para uso quando o jogo for instalado como web app/PWA.
+> **Note:** Mobile browsers do not allow a regular webpage to force screen rotation on page load without user interaction. Because of this, V6 uses fullscreen + the Screen Orientation API when available, with a visual fallback when it is not.
 
-> Observação: navegadores móveis não permitem que uma página comum force rotação de tela no carregamento sem interação do usuário. Por isso a V6 usa fullscreen + Screen Orientation API quando disponível e um fallback visual quando não estiver.
+## V7 — Touch Pull-Back Fix
 
+- The aim no longer rotates when the player touches the cue to pull it back.
+- Touching the area behind the cue ball, where the cue is rendered, preserves the current aiming direction.
+- During the pull-back gesture, the angle remains completely locked.
+- Unintentional sideways finger movement is ignored when calculating the shot direction.
+- Touching another area of the table still allows the player to select a new direction.
+- Desktop/mouse behavior remains unchanged.
 
-## V7 — correção definitiva da puxada no touch
+## V8 — Correct Turns and Compact Mobile Support
 
-- A mira não gira mais quando o jogador toca no taco para puxá-lo.
-- O toque na região atrás da bola branca, onde o taco está desenhado, preserva a direção atual.
-- Durante a puxada, o ângulo fica completamente travado.
-- Movimento lateral involuntário do dedo é ignorado para a direção da tacada.
-- Tocar em outra região da mesa continua permitindo escolher uma nova direção.
-- Mouse/desktop mantém o comportamento anterior.
+### Turns
 
+- If the player pockets a valid ball without committing a foul, they continue playing.
+- The CPU only receives the turn when the player fails to pocket a valid ball or commits a foul.
+- The same rule applies to the CPU.
+- It is possible to pocket every ball in sequence without the opponent playing, as long as no shot is missed.
+- First-contact validation now uses the state of the table at the beginning of the shot, preventing false fouls immediately after solids/stripes are assigned.
+- Pocketing the final ball of your group and the 8-ball in the same shot does not count as a valid finish; the player must already be shooting for the 8-ball before the shot begins.
 
-## V8 — turnos corretos e celulares compactos
+### Compact Mobile
 
-### Turnos
-- Se o jogador encaçapar uma bola válida sem cometer falta, ele continua jogando.
-- A CPU só recebe a vez quando o jogador não encaçapa uma bola válida ou comete uma falta.
-- A mesma regra vale para a CPU.
-- É possível encaçapar todas as bolas em sequência sem o adversário jogar, desde que não haja erro.
-- A validação da primeira colisão agora usa o estado da mesa no início da tacada, evitando faltas falsas logo após a definição de lisas/listradas.
-- Encaçapar a última bola do grupo e a bola 8 na mesma tacada não conta como finalização válida; o jogador precisa já estar na bola 8 antes da tacada.
+- The HUD is forced into a single row during horizontal gameplay.
+- Fixed the conflict with the 640px breakpoint that increased HUD height.
+- Added layouts for screens around 568×320 and 640×360.
+- Side controls are narrower and more compact.
+- Improved support for safe areas and the available viewport.
 
-### Mobile compacto
-- HUD forçado para uma única linha durante gameplay horizontal.
-- Correção do conflito com o breakpoint de 640px que aumentava a altura do HUD.
-- Layout específico para telas próximas de 568×320 e 640×360.
-- Controles laterais mais estreitos e compactos.
-- Melhor respeito às safe areas e ao viewport disponível.
+## V9 FINAL — Universal Responsiveness and Faster Gameplay
 
+### Responsiveness
 
-## V9 FINAL — responsividade universal e gameplay mais rápida
+- The power panel no longer depends on device-specific breakpoints.
+- In mobile landscape mode, **"SHOT POWER"** automatically becomes **"POWER"**.
+- The power meter uses the remaining vertical space instead of a fixed height.
+- The layout uses `VisualViewport` to respect the space actually available when the browser or Android navigation bars remain visible.
+- On extremely narrow panels, buttons preserve their icons and hide text before the layout can overflow.
+- The canvas uses a reduced DPR on touch devices to improve performance on lower-end phones.
 
-### Responsividade
-- O painel de força não depende mais de breakpoints de modelos específicos.
-- Em landscape mobile, "FORÇA DA TACADA" vira automaticamente "FORÇA".
-- O medidor de potência usa o espaço vertical restante, em vez de uma altura fixa.
-- O layout usa `VisualViewport` para respeitar o espaço realmente disponível quando o navegador/Android mantém barras visíveis.
-- Em painéis extremamente estreitos, os botões preservam os ícones e ocultam o texto antes de cortar o layout.
-- O canvas usa DPR reduzido em dispositivos touch para melhorar desempenho em celulares mais simples.
+### Match Pace
 
-### Ritmo da partida
-- O atrito agora é dinâmico: tacadas fortes preservam alcance, enquanto movimentos finais muito lentos param rapidamente.
-- O próximo turno é liberado assim que o movimento deixa de ser perceptível.
-- O tempo de decisão visual da CPU foi reduzido.
-- A simulação passou de 180 Hz para 120 Hz, mantendo estabilidade de colisão e reduzindo carga de CPU em mobile.
+- Friction is now dynamic: powerful shots preserve range, while very slow final movement stops quickly.
+- The next turn is released as soon as movement is no longer visually noticeable.
+- CPU visual decision time was reduced.
+- Physics simulation was reduced from 180 Hz to 120 Hz, preserving collision stability while lowering CPU usage on mobile.
 
+## V10 FINAL — Power and Rack Break Improvements
 
-## V10 FINAL — potência e quebra do rack
-
-- A força do taco agora usa uma curva progressiva: 50% continua controlável, enquanto 80–100% fica muito mais forte.
-- Uma tacada em 100% passa de aproximadamente 1,80 para 2,85 unidades visuais de velocidade inicial.
-- Bolas em alta velocidade preservam mais energia.
-- A restituição das colisões foi aumentada para transferir melhor o impacto entre as bolas.
-- As tabelas devolvem um pouco mais de velocidade.
-- Tacadas muito rápidas usam substeps físicos adaptativos para reduzir o risco de atravessar bolas durante a quebra.
-- O comportamento de baixa velocidade continua desacelerando rápido para não reintroduzir demora entre os turnos.
+- Cue power now uses a progressive curve: 50% remains controllable, while 80–100% becomes significantly stronger.
+- A 100% shot increased from approximately 1.80 to 2.85 visual units of initial speed.
+- Balls preserve more energy at high speed.
+- Collision restitution was increased to transfer impact more effectively between balls.
+- Cushions return slightly more speed.
+- Very fast shots use adaptive physics substeps to reduce the risk of balls passing through each other during the break.
+- Low-speed movement still decelerates quickly to avoid reintroducing delays between turns.
