@@ -1,10 +1,10 @@
 # VIGU Sinuca Arena 🎱
 
-A pool game inspired by 8-ball rules, built with **HTML, CSS, and vanilla JavaScript**, with no frameworks or external dependencies. It was designed to run directly in the browser and to be hosted for free with **GitHub Pages**.
+A pool game inspired by 8-ball rules, built with **HTML, CSS, and vanilla JavaScript**, with no frameworks or external dependencies. It was designed to run directly in the browser and to be published for free using **GitHub Pages**.
 
 ## Features
 
-- Pool table rendered using `<canvas>`.
+- Pool table rendered with `<canvas>`.
 - Ball physics with collisions, friction, cushions, and pockets.
 - Mouse and touch aiming.
 - Gesture-based shots: hold, pull the cue back, and release.
@@ -14,17 +14,17 @@ A pool game inspired by 8-ball rules, built with **HTML, CSS, and vanilla JavaSc
   - Medium
   - Hard
   - HARDCORE
-- HARDCORE mode is unlocked only after winning one match at each of the three initial difficulty levels.
+- HARDCORE mode is unlocked only after winning one match in each of the three initial difficulty levels.
 - Progress is saved in the browser using `localStorage`.
 - Responsive interface for desktop, tablet, and mobile.
-- Custom sound effects for shots, collisions, cushion impacts, pocketing, victory, and defeat.
+- Custom sound effects for cue shots, collisions, cushion impacts, pocketing, victory, and defeat.
 - 100% static project, ideal for GitHub Pages.
 
 ## Controls
 
 - **Desktop:** move the mouse to aim. Click and hold on the table, drag in the opposite direction of the aim to pull the cue back, then release to shoot.
-- **Mobile/tablet:** tap in the direction you want to aim, keep your finger pressed, drag backward, and release.
-- A short click/tap only adjusts the aim and does not trigger an accidental shot.
+- **Mobile/tablet:** touch and hold outside the cue pull zone, then move your finger to adjust the aim continuously. To shoot, touch the cue behind the cue ball, pull backward, and release.
+- A short click/tap only adjusts or preserves the aim and does not trigger an accidental shot.
 
 ## Running Locally
 
@@ -107,7 +107,7 @@ Mobile gameplay was optimized for landscape orientation:
 - The aim no longer rotates when the player touches the cue to pull it back.
 - Touching the area behind the cue ball, where the cue is rendered, preserves the current aiming direction.
 - During the pull-back gesture, the angle remains completely locked.
-- Unintentional sideways finger movement is ignored when calculating the shot direction.
+- Unintentional sideways finger movement is ignored when calculating shot direction.
 - Touching another area of the table still allows the player to select a new direction.
 - Desktop/mouse behavior remains unchanged.
 
@@ -137,7 +137,7 @@ Mobile gameplay was optimized for landscape orientation:
 - The power panel no longer depends on device-specific breakpoints.
 - In mobile landscape mode, **"SHOT POWER"** automatically becomes **"POWER"**.
 - The power meter uses the remaining vertical space instead of a fixed height.
-- The layout uses `VisualViewport` to respect the space actually available when the browser or Android navigation bars remain visible.
+- The layout uses `VisualViewport` to respect the space actually available when browser or Android navigation bars remain visible.
 - On extremely narrow panels, buttons preserve their icons and hide text before the layout can overflow.
 - The canvas uses a reduced DPR on touch devices to improve performance on lower-end phones.
 
@@ -157,3 +157,13 @@ Mobile gameplay was optimized for landscape orientation:
 - Cushions return slightly more speed.
 - Very fast shots use adaptive physics substeps to reduce the risk of balls passing through each other during the break.
 - Low-speed movement still decelerates quickly to avoid reintroducing delays between turns.
+
+## V11 — Continuous Mobile Aiming
+
+- Mobile aiming now behaves more like desktop mouse aiming.
+- Touch and hold anywhere outside the cue pull zone, then move your finger to rotate the cue and aiming line continuously.
+- Releasing the aiming gesture never shoots the cue ball.
+- Shot charging remains a separate gesture: touch the cue behind the cue ball, pull backward, and release.
+- Once charging starts, the aiming angle is completely locked.
+- Sideways finger movement while charging does not alter the aim.
+- Desktop controls, physics, CPU behavior, rules, sound, power curve, responsive landscape mode, and GitHub Pages deployment remain unchanged.

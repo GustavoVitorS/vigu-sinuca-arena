@@ -41,7 +41,7 @@
   const modalText = document.getElementById("modalText");
   const modalActions = document.getElementById("modalActions");
 
-  const GAME_VERSION = "10.0-final-break-power";
+  const GAME_VERSION = "11.0-mobile-continuous-aim";
   const STORAGE_KEY = "vigu-sinuca-arena-progress-v1";
   const LEGACY_STORAGE_KEY = "vigu-cue-clash-progress-v1";
 
@@ -119,6 +119,7 @@
 
   let cueGesture = {
     active: false,
+    mode: null, // "aiming" | "charging"
     pointerId: null,
     pointerType: "mouse",
     startX: 0,
@@ -833,12 +834,33 @@
 
   function resetCueGesture() {
     cueGesture.active = false;
+    cueGesture.mode = null;
     cueGesture.pointerId = null;
     cueGesture.pull = 0;
     canvas.classList.remove("pulling");
+    canvas.classList.remove("aiming-touch");
     dragState.textContent = "PRONTO";
     dragState.classList.remove("charging");
     setPowerDisplay(0);
+  }
+
+  function updateTouchAimFromPosition(pos) {
+    const cue = getCueBall();
+    if (!cue || cue.pocketed) return false;
+
+    const cp = normToPx(cue);
+    const dx = pos.x - cp.x;
+    const dy = pos.y - cp.y;
+
+    // Evita instabilidade quando o dedo fica praticamente sobre a bola branca.
+    if (Math.hypot(dx, dy) < Math.max(10, normToPx(cue).r * 0.85)) {
+      return false;
+    }
+
+    aim.angle = Math.atan2(dy, dx);
+    aim.pointX = pos.x;
+    aim.pointY = pos.y;
+    return true;
   }
 
   function isTouchInCuePullZone(pos, cue) {
@@ -876,33 +898,7 @@
     if (!cue || cue.pocketed) return;
 
     const pos = clientToCanvas(e.clientX, e.clientY);
-    let preservingTouchAim = false;
-
-    if (e.pointerType !== "mouse") {
-      /*
-        CORREÇÃO MOBILE V7
-
-        Na V6, qualquer novo toque redefinia a mira usando a posição do dedo.
-        Isso causava um problema importante: depois de mirar, ao tocar no taco
-        (que fica atrás da bola branca) para puxá-lo, a mira era recalculada
-        para o lado de trás e girava quase 180 graus.
-
-        Agora:
-        - tocar no lado/área do taco = mantém exatamente a mira atual;
-        - tocar fora da área do taco = define uma nova mira;
-        - durante toda a puxada o ângulo fica travado.
-      */
-      preservingTouchAim = isTouchInCuePullZone(pos, cue);
-
-      if (!preservingTouchAim) {
-        const cp = normToPx(cue);
-        if (Math.hypot(pos.x - cp.x, pos.y - cp.y) > 4) {
-          aim.angle = Math.atan2(pos.y - cp.y, pos.x - cp.x);
-          aim.pointX = pos.x;
-          aim.pointY = pos.y;
-        }
-      }
-    }
+    const isTouch = e.pointerType !== "mouse";
 
     cueGesture.active = true;
     cueGesture.pointerId = e.pointerId;
@@ -910,19 +906,49 @@
     cueGesture.startX = pos.x;
     cueGesture.startY = pos.y;
     cueGesture.pull = 0;
-
-    // A direção é congelada ANTES de qualquer movimento de força.
-    // updateCueGesture nunca altera este valor.
-    cueGesture.lockedAngle = aim.angle;
     cueGesture.maxPull = Math.max(90, Math.min(190, Math.min(W, H) * .34));
+
+    /*
+      V11 — MOBILE COM DOIS GESTOS DISTINTOS
+
+      1) AIMING:
+         tocar/segurar fora da região do taco e mover o dedo gira a mira
+         continuamente, como o hover do mouse no desktop.
+
+      2) CHARGING:
+         tocar na região do taco atrás da bola branca mantém o ângulo
+         totalmente travado; puxar para trás altera somente a força.
+
+      Assim, movimentar a mira nunca interfere na potência, e puxar o taco
+      nunca altera a direção escolhida.
+    */
+    if (isTouch && !isTouchInCuePullZone(pos, cue)) {
+      cueGesture.mode = "aiming";
+      updateTouchAimFromPosition(pos);
+
+      try { canvas.setPointerCapture(e.pointerId); } catch {}
+      canvas.classList.add("aiming-touch");
+      dragState.textContent = "MIRANDO";
+      dragState.classList.remove("charging");
+      setPowerDisplay(0);
+      messageLabel.textContent = "Segure e mova o dedo para posicionar a mira.";
+      draw();
+      e.preventDefault();
+      return;
+    }
+
+    // Desktop mantém a mecânica existente; no touch este modo começa apenas
+    // quando o jogador toca na região do taco.
+    cueGesture.mode = "charging";
+    cueGesture.lockedAngle = aim.angle;
 
     try { canvas.setPointerCapture(e.pointerId); } catch {}
     canvas.classList.add("pulling");
     dragState.textContent = "PUXE";
     dragState.classList.add("charging");
-    messageLabel.textContent = preservingTouchAim
+    messageLabel.textContent = isTouch
       ? "Mira travada. Puxe o taco para trás e solte."
-      : "Puxe para trás sem alterar a direção da mira.";
+      : "Puxe o taco para trás e solte.";
     setPowerDisplay(0);
     draw();
     e.preventDefault();
@@ -932,16 +958,29 @@
     if (!cueGesture.active || e.pointerId !== cueGesture.pointerId) return;
 
     const pos = clientToCanvas(e.clientX, e.clientY);
+
+    if (cueGesture.mode === "aiming") {
+      // O dedo funciona como o mouse: enquanto estiver pressionado e se mover,
+      // a linha de mira e o taco acompanham continuamente a posição.
+      if (updateTouchAimFromPosition(pos)) {
+        dragState.textContent = "MIRANDO";
+        messageLabel.textContent = "Mova o dedo para ajustar a mira • solte quando estiver satisfeito.";
+        draw();
+      }
+      e.preventDefault();
+      return;
+    }
+
+    if (cueGesture.mode !== "charging") return;
+
     const moveX = pos.x - cueGesture.startX;
     const moveY = pos.y - cueGesture.startY;
 
-    // IMPORTANTE: usamos somente o ângulo congelado no pointerdown.
-    // O dedo pode sair para os lados durante a puxada sem fazer o taco girar.
+    // No carregamento usamos APENAS o ângulo congelado no pointerdown.
+    // Movimento lateral do dedo não muda a mira.
     const dx = Math.cos(cueGesture.lockedAngle);
     const dy = Math.sin(cueGesture.lockedAngle);
 
-    // Apenas a componente para trás gera força.
-    // Movimento lateral não altera mira nem potência.
     const backwards = -(moveX * dx + moveY * dy);
     cueGesture.pull = Math.max(0, Math.min(cueGesture.maxPull, backwards));
 
@@ -959,6 +998,7 @@
   function finishCueGesture(e, cancelled = false) {
     if (!cueGesture.active || e.pointerId !== cueGesture.pointerId) return;
 
+    const mode = cueGesture.mode;
     const pull = cueGesture.pull;
     const maxPull = cueGesture.maxPull;
     const angle = cueGesture.lockedAngle;
@@ -972,10 +1012,24 @@
       return;
     }
 
-    // A short click/tap only locks/adjusts aim; it does not accidentally fire.
+    // Finalizar a mira nunca dispara a bola.
+    if (mode === "aiming") {
+      updateHUD("Mira ajustada. Agora toque no taco, puxe para trás e solte.");
+      draw();
+      e.preventDefault();
+      return;
+    }
+
+    if (mode !== "charging") {
+      updateHUD();
+      draw();
+      return;
+    }
+
+    // Um toque curto no taco não dispara acidentalmente.
     const minPull = Math.max(10, maxPull * .07);
     if (pull < minPull) {
-      updateHUD("Mira ajustada. Segure e puxe para trás para fazer a tacada.");
+      updateHUD("Mira mantida. Puxe o taco mais para trás para fazer a tacada.");
       draw();
       return;
     }
